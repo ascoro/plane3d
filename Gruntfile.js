@@ -27,6 +27,22 @@ module.exports = function(grunt) {
 		  },
         src: ['src/html/<%= pkg.name %>.html'],
         dest: 'dist/<%= pkg.name %>.html'
+      },
+	  jquery:{
+		  options: {
+			banner: '',
+			stripBanners: false
+		  },
+        src: ['lib/jquery-2.0.3.min.js'],
+        dest: 'dist/jquery.js'
+      },
+	  glmatrix:{
+		  options: {
+			banner: '',
+			stripBanners: false
+		  },
+        src: ['lib/glmatrix-0.9.5-min.js'],
+        dest: 'dist/glmatrix-0.9.5-min.js'
       }
     },
 	uglify: {

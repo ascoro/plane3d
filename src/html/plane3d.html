@@ -1,4 +1,105 @@
-<script src="plane3d.js"></script>
-<script>
+<!doctype html>
+<html>
+    <head>
 
-</script>
+        <title dir="ltr">Plane 3D</title>
+    </head>
+    <body>
+		<canvas id="canvas_window" width='500px' height='200px'></canvas>
+		<script src="jquery.js"></script>
+		<script src="glmatrix-0.9.5-min.js"></script>
+		<script src="plane3d.js"></script>
+		<script id="shader-vs" type="x-shader/x-vertex">attribute vec3 aVertexPosition;attribute vec4 aVertexColor;uniform mat4 uMVMatrix;uniform mat4 uPMatrix;varying vec4 vColor;void main(void){ gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0); vColor = aVertexColor;}</script>
+		<script id="shader-fs" type="x-shader/x-fragment">precision mediump float;varying vec4 vColor;void main(void){ gl_FragColor = vColor;}</script>
+		
+		<script>
+        var gl;
+var shaderProg;
+var vbo = [ {triangle: {x:1, y:-1.75, z:-1.0}} ];
+var pMatrix = mat4.create();
+var mvMatrix = mat4.create();
+var mvMatrixStack = [];
+
+    var canvas = document.querySelector('#canvas_window');
+
+    gl = canvas.getContext("webgl") || canvas.getContext('experimental-webgl');
+	gl.viewportWidth = canvas.width;
+	gl.viewportHeight = canvas.height;
+
+    //Shaders
+    var shaderV = gl.createShader(gl.VERTEX_SHADER);
+	gl.shaderSource(shaderV,  document.querySelector('#shader-vs').text);
+    gl.compileShader(shaderV);
+	if(!gl.getShaderParameter(shaderV, gl.COMPILE_STATUS))
+        throw new Error(gl.getShaderInfoLog(shaderV));
+    var shaderF = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(shaderF,  document.querySelector('#shader-fs').text);
+    gl.compileShader(shaderF);
+	if(!gl.getShaderParameter(shaderF, gl.COMPILE_STATUS))
+        throw new Error(gl.getShaderInfoLog(shaderF));
+    shaderProg = gl.createProgram();
+    gl.attachShader(shaderProg, shaderV);
+    gl.attachShader(shaderProg, shaderF);
+    gl.linkProgram(shaderProg);
+    if(!gl.getProgramParameter(shaderProg, gl.LINK_STATUS))
+        throw new Error('Error: Could not initialize shaders');
+    gl.useProgram(shaderProg);
+    shaderProg.vertexPositionAttribute = gl.getAttribLocation(shaderProg, 'aVertexPosition');
+    gl.enableVertexAttribArray(shaderProg.vertexPositionAttribute);
+    shaderProg.vertexColorAttribute = gl.getAttribLocation(shaderProg, 'aVertexColor');
+    gl.enableVertexAttribArray(shaderProg.vertexColorAttribute);
+    shaderProg.pMatrixUniform = gl.getUniformLocation(shaderProg, 'uPMatrix');
+    shaderProg.mvMatrixUniform = gl.getUniformLocation(shaderProg, 'uMVMatrix');
+	
+	var bufferVerts=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferVerts);
+    gl.bufferData(gl.ARRAY_BUFFER, 
+                    new Float32Array([
+        -0.5, 0.5, 0.0,
+        0.5, 0.5, 0.0,
+        0.0, 1.5, 0.0
+    ]),
+                    gl.STATIC_DRAW);
+					
+	var bufferColors=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors);
+    gl.bufferData(gl.ARRAY_BUFFER, 
+                    new Float32Array([
+        0.8, 0.05, 0.05, 1.0,
+        0.05, 0.8, 0.05, 1.0,
+        0.05, 0.05, 0.8, 1.0
+    ]),
+                    gl.STATIC_DRAW);
+
+    //
+    // Setup scene attributes
+    //
+    gl.clearColor(0.13, 0.13, 0.13, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+    
+    
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+
+    mat4.identity(mvMatrix);
+    mat4.scale(mvMatrix, [5.0, 5.0, 1.0]);
+    mat4.translate(mvMatrix, [0.0, -1.0, -9.0]);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferVerts);
+    gl.vertexAttribPointer(shaderProg.vertexPositionAttribute,  3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors);
+    gl.vertexAttribPointer(shaderProg.vertexColorAttribute,  4, gl.FLOAT, false, 0, 0);
+                         
+    gl.uniformMatrix4fv(shaderProg.pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(shaderProg.mvMatrixUniform, false, mvMatrix);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+      </script>
+
+        
+    </body>
+</html>
+<!-- Hosting24 Analytics Code -->
+<script type="text/javascript" src="http://stats.hosting24.com/count.php"></script>
+<!-- End Of Analytics Code -->
