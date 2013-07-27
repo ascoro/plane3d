@@ -43,8 +43,23 @@ module.exports = function(grunt) {
 		  },
         src: ['lib/glmatrix-0.9.5-min.js'],
         dest: 'dist/glmatrix-0.9.5-min.js'
+      },
+	  three:{
+		  options: {
+			banner: '',
+			stripBanners: false
+		  },
+        src: ['lib/three.min.js'],
+        dest: 'dist/three.js'
       }
     },
+	copy: {
+		main: {
+			files: [
+				{expand: true, cwd:'src/img/', src: ['*'], dest: 'dist/img', filter: 'isFile'}
+			]
+		}
+	},
 	uglify: {
       options: {
         banner: '<%= banner %>'
@@ -57,10 +72,11 @@ module.exports = function(grunt) {
   });
 
   // These plugins provide necessary tasks.
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
   // Default task.
-  grunt.registerTask('default', ['concat','uglify']);
+  grunt.registerTask('default', ['concat','uglify','copy']);
 
 };
