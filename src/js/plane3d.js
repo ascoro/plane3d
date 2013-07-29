@@ -1,5 +1,23 @@
 var coroSite = window.coroSite||{};
 var geometry;
+coroSite.Shot = function(settings){
+	var thiz = this;
+	var speed = settings.speed||2;
+	var position = settings.position||{x:0,y:0,z:0};
+	var direction = settings.direction||{x:0,y:1,z:0};
+	var cube = new THREE.Mesh( new THREE.CubeGeometry( 5, 5, 5 ), new THREE.MeshNormalMaterial() );;
+	cube.position.x=position.x;
+	cube.position.y=position.y;
+	cube.position.z=position.z;
+	this.getObject = function(){
+		return cube;
+	};
+	this.move = function(){
+		cube.position.x+=direction.x*speed;
+		cube.position.y+=direction.y*speed;
+		cube.position.z+=direction.z*speed;
+	}
+};
 coroSite.Terrain = function(settings){
 	var thiz = this;
 	var width=settings.width;
@@ -98,25 +116,28 @@ var plane3d = function(settings){
 	settings=settings||{};
 	var thiz=this;
 	var container, stats;
-	var camera, controls, scene, renderer;
+	var controls, scene, renderer;
 	var  texture;
 	var worldWidth = 256, worldDepth = 256, worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
 	var clock, isAbove;
 	var terrain;
+	var shot;
 	var youAreDeadToMeVaraible=false;
 	var init = function(){
 		clock = new THREE.Clock();
 		isAbove = true;
 		container = document.getElementById( 'container' );
 		camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 20000 );
-		controls = new THREE.FirstPersonControls( camera,undefined, colisionDetector);
+		controls = new THREE.FirstPersonControls( camera,undefined, colisionDetector,addShot);
 		controls.movementSpeed = 1000;
 		controls.lookSpeed = 0.1;
 		scene = new THREE.Scene();
 		terrain = new coroSite.Terrain({width:worldWidth,depth:worldDepth});
 		mesh = terrain.getMesh();
-		camera.position.y = 600;
+		camera.position.y = terrain.getHeight(0,0)+100;
 		scene.add( mesh );
+		shot = new coroSite.Shot({});
+		scene.add( shot.getObject() );
 		/*cube = new THREE.Mesh( new THREE.CubeGeometry( 50, 50, 50 ), new THREE.MeshNormalMaterial() );
 		scene.add( cube );
 		cube.position.x=0;
@@ -147,11 +168,30 @@ var plane3d = function(settings){
 			console.log(xMap+" - "+zMap+" you are out of the MAP!");
 		}
 	}
+	setInterval(function(){console.log(numShots+" shoots");},1000)
+	var shots = [];
+	var numShots=0;
+	var addShot = function(){
+		var vector = new THREE.Vector3( 0, 0, -1 );
+		vector.applyEuler( camera.rotation, camera.rotation.order );
+		var newShot = new coroSite.Shot({position:camera.position,direction:vector,speed:50});
+		scene.add( newShot.getObject() );
+		shots.push(newShot);
+		numShots++;
+		//console.log("Add Shoot "+numShots);
+	}
+	var moveShots = function(){
+		for(var i=0;shots[i];i++){
+			shots[i].move();
+		}
+	}
 	var render = function () {
 		if(!youAreDeadToMeVaraible){
 			requestAnimationFrame(render);
 			//colisionDetector();
 			controls.update( clock.getDelta() );
+			shot.move();
+			moveShots();
 			if(!youAreDeadToMeVaraible){
 				renderer.render(scene, camera);
 			}
@@ -211,7 +251,8 @@ var ImprovedNoise = function () {
 	}
 }
 
-THREE.FirstPersonControls = function ( object, domElement , callbackMove ) {
+THREE.FirstPersonControls = function ( object, domElement , callbackMove,addShot ) {
+	this.addShot=addShot;
 	this.object = object;
 	this.target = new THREE.Vector3( 0, 0, 0 );
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
@@ -242,6 +283,7 @@ THREE.FirstPersonControls = function ( object, domElement , callbackMove ) {
 	this.mouseDragOn = false;
 	this.viewHalfX = 0;
 	this.viewHalfY = 0;
+	this.shoot = 0;
 	if ( this.domElement !== document ) {
 		this.domElement.setAttribute( 'tabindex', -1 );
 	}
@@ -291,6 +333,7 @@ THREE.FirstPersonControls = function ( object, domElement , callbackMove ) {
 	this.onKeyDown = function ( event ) {
 		//event.preventDefault();
 		switch ( event.keyCode ) {
+			case 32: /*space*/ this.shoot++; break;
 			case 38: /*up*/
 			case 87: /*W*/ this.moveForward = true; break;
 			case 37: /*left*/
@@ -321,6 +364,10 @@ THREE.FirstPersonControls = function ( object, domElement , callbackMove ) {
 	this.update = function( delta ) {
 		if ( this.freeze ) {
 			return;
+		}
+		if(this.shoot>0){
+			this.addShot();
+			this.shoot--;
 		}
 		if ( this.heightSpeed ) {
 			var y = THREE.Math.clamp( this.object.position.y, this.heightMin, this.heightMax );
