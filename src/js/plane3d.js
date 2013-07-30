@@ -18,6 +18,7 @@ coroSite.Shot = function(settings){
 		cube.position.z+=direction.z*speed;
 	}
 };
+
 coroSite.Terrain = function(settings){
 	var thiz = this;
 	var width=settings.width;
