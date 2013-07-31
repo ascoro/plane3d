@@ -5,6 +5,7 @@ coroSite.Shot = function(settings){
 	var speed = settings.speed||2;
 	var position = settings.position||{x:0,y:0,z:0};
 	var direction = settings.direction||{x:0,y:1,z:0};
+	var boundingBox=7500;
 	var cube = new THREE.Mesh( new THREE.CubeGeometry( 5, 5, 5 ), new THREE.MeshNormalMaterial() );;
 	cube.position.x=position.x;
 	cube.position.y=position.y;
@@ -17,7 +18,45 @@ coroSite.Shot = function(settings){
 		cube.position.y+=direction.y*speed;
 		cube.position.z+=direction.z*speed;
 	}
+	this.isDead = function(){
+		if(Math.abs(cube.position.x)>boundingBox/2){ return true; }
+		if(Math.abs(cube.position.y)>boundingBox/2){ return true; }
+		if(Math.abs(cube.position.z)>boundingBox/2){ return true; }
+		return false;
+	}
 };
+coroSite.Enemy = function(settings){
+	var thiz = this;
+	var speed = settings.speed||10;
+	var boundingBox=7500;
+	var position = settings.position||{x:Math.random()*boundingBox-boundingBox/2,y:600,z:Math.random()*boundingBox-boundingBox/2};
+	var direction = settings.direction||{x:Math.random(),y:0,z:Math.random()};
+	var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 20 ), new THREE.MeshNormalMaterial() );
+	var dead=false;
+	cube.position.x=position.x;
+	cube.position.y=position.y;
+	cube.position.z=position.z;
+	this.getObject = function(){
+		return cube;
+	};
+	this.move = function(){
+		if(!dead){
+			cube.position.x+=direction.x*speed;
+			cube.position.y+=direction.y*speed;
+			cube.position.z+=direction.z*speed;
+			if(Math.abs(cube.position.x)>boundingBox/2){ direction.x*=-1;}
+			if(Math.abs(cube.position.y)>boundingBox/2){ direction.y*=-1;}
+			if(Math.abs(cube.position.z)>boundingBox/2){ direction.z*=-1;}
+		}
+	}
+	this.kill = function(){
+		dead=true;
+	}
+	this.isDead = function(){
+		return dead;
+	}
+};
+
 coroSite.Terrain = function(settings){
 	var thiz = this;
 	var width=settings.width;
@@ -121,7 +160,6 @@ var plane3d = function(settings){
 	var worldWidth = 256, worldDepth = 256, worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
 	var clock, isAbove;
 	var terrain;
-	var shot;
 	var youAreDeadToMeVaraible=false;
 	var init = function(){
 		clock = new THREE.Clock();
@@ -134,19 +172,39 @@ var plane3d = function(settings){
 		scene = new THREE.Scene();
 		terrain = new coroSite.Terrain({width:worldWidth,depth:worldDepth});
 		mesh = terrain.getMesh();
-		camera.position.y = terrain.getHeight(0,0)+100;
+		camera.position.y = terrain.getHeight(0,0)+400;
 		scene.add( mesh );
-		shot = new coroSite.Shot({});
-		scene.add( shot.getObject() );
-		/*cube = new THREE.Mesh( new THREE.CubeGeometry( 50, 50, 50 ), new THREE.MeshNormalMaterial() );
-		scene.add( cube );
-		cube.position.x=0;
-		cube.position.y=500;
-		cube.position.z=0;*/
+
 		renderer = new THREE.WebGLRenderer();
 		renderer.setSize( window.innerWidth, window.innerHeight );
 		container.innerHTML = "";
 		container.appendChild( renderer.domElement );
+
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+		addEnemy();
+
 		render();
 	}
 	var colisionDetector = function(){
@@ -168,8 +226,12 @@ var plane3d = function(settings){
 			console.log(xMap+" - "+zMap+" you are out of the MAP!");
 		}
 	}
-	setInterval(function(){console.log(numShots+" shoots");},1000)
+	setInterval(function(){var enemiesAlive=0;for(var i=0;enemies[i];i++){
+			if(!enemies[i].isDead()){enemiesAlive++;}
+		}
+		console.log(numShots+" shoots - "+enemiesAlive+" alive enemies");},1000)
 	var shots = [];
+	var enemies = [];
 	var numShots=0;
 	var addShot = function(){
 		var vector = new THREE.Vector3( 0, 0, -1 );
@@ -180,9 +242,50 @@ var plane3d = function(settings){
 		numShots++;
 		//console.log("Add Shoot "+numShots);
 	}
+	var addEnemy = function(){
+		var newEnemy = new coroSite.Enemy([]);
+		scene.add( newEnemy.getObject() );
+		enemies.push(newEnemy);
+		numShots++;
+		//console.log("Add Shoot "+numShots);
+	}
+	var checkKillEnemy = function(shot){
+		var shotCube = shot.getObject();
+		for(var i=0;enemies[i];i++){
+			var enemy=enemies[i];
+			if(!enemy.isDead()){
+				var cube = enemy.getObject();
+
+				if(Math.abs(cube.position.x-shotCube.position.x)<20
+					&& Math.abs(cube.position.y-shotCube.position.y)<20
+					&& Math.abs(cube.position.z-shotCube.position.z)<20
+					){
+					enemy.kill();
+					enemies.splice(i,1);
+					i--;
+					console.log("Kill enemy!");
+				}
+			}
+			
+		}		
+	}
 	var moveShots = function(){
 		for(var i=0;shots[i];i++){
 			shots[i].move();
+			checkKillEnemy(shots[i]);
+		}
+		for(var i=0;shots[i];i++){
+			if(shots[i].isDead()){
+				scene.remove(shots[i].getObject());
+				shots.splice(i,1);
+				numShots--;
+				i--;
+			}
+		}
+	}
+	var moveEnemies = function(){
+		for(var i=0;enemies[i];i++){
+			enemies[i].move();
 		}
 	}
 	var render = function () {
@@ -190,8 +293,10 @@ var plane3d = function(settings){
 			requestAnimationFrame(render);
 			//colisionDetector();
 			controls.update( clock.getDelta() );
-			shot.move();
+			
 			moveShots();
+			moveEnemies();
+			
 			if(!youAreDeadToMeVaraible){
 				renderer.render(scene, camera);
 			}
