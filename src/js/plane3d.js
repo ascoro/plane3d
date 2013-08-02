@@ -1,5 +1,45 @@
 var coroSite = window.coroSite||{};
 var geometry;
+coroSite.stats = function(){
+	var $elMessage=$("<div class='stats message'>");
+	var $contentMessage=$("<div class='content'>");
+	$elMessage.append($contentMessage);
+	var $elStats=$("<div class='stats'>");
+	$("body").append($elStats);
+	$("body").append($elMessage);
+	var thiz=this;
+	var messages =[];
+	var messagesBusy=false;
+	var lastType;
+	thiz.addMessage=function(message,type){
+		messages.push({message:message,type:type});
+		setTimeout(showMessage,0);
+	}
+	var showMessage = function(){
+		if(!messagesBusy){
+		console.log("A");
+			var nextMessage = messages.shift();
+			if(nextMessage){
+				messagesBusy=true;
+				$contentMessage.html(nextMessage.message);
+				$elMessage.removeClass(lastType);
+				$elMessage.addClass("active");
+				
+				$elMessage.addClass(nextMessage.type);
+				lastType=nextMessage.type;
+				setTimeout(hideMessage,3000);
+			}
+		}
+	}
+	var hideMessage = function(){
+		messagesBusy=false;
+		$elMessage.removeClass("active");
+		setTimeout(showMessage,1000);
+	}
+	thiz.updateStats=function(message){
+		$elStats.html(message);
+	}
+}
 coroSite.Shot = function(settings){
 	var thiz = this;
 	var speed = settings.speed||2;
@@ -161,7 +201,10 @@ var plane3d = function(settings){
 	var clock, isAbove;
 	var terrain;
 	var youAreDeadToMeVaraible=false;
+	var stats;
+	var numEnemies=0;
 	var init = function(){
+		stats=new coroSite.stats();
 		clock = new THREE.Clock();
 		isAbove = true;
 		container = document.getElementById( 'container' );
@@ -181,6 +224,7 @@ var plane3d = function(settings){
 		container.appendChild( renderer.domElement );
 
 		addEnemy();
+		/*addEnemy();
 		addEnemy();
 		addEnemy();
 		addEnemy();
@@ -202,8 +246,7 @@ var plane3d = function(settings){
 		addEnemy();
 		addEnemy();
 		addEnemy();
-		addEnemy();
-		addEnemy();
+		addEnemy();*/
 
 		render();
 	}
@@ -217,19 +260,22 @@ var plane3d = function(settings){
 			if(!isAbove){
 				console.log("Collision! you are dead! "+yCamera+" = "+yMap);
 				youAreDeadToMeVaraible=true;
+				stats.addMessage("You are dead!","dead");
 			}
 			/*cube.position.x=camera.position.x;
 			cube.position.y=yMap;
 			cube.position.z=camera.position.z;*/
 			//console.log(yCamera+" = "+yMap+" " + (yCamera-yMap>0 ? "Above" : "Under") );
 		}else{
-			console.log(xMap+" - "+zMap+" you are out of the MAP!");
+			//console.log(xMap+" - "+zMap+" you are out of the MAP!");
 		}
 	}
 	setInterval(function(){var enemiesAlive=0;for(var i=0;enemies[i];i++){
 			if(!enemies[i].isDead()){enemiesAlive++;}
 		}
-		console.log(numShots+" shoots - "+enemiesAlive+" alive enemies");},1000)
+		//stats.updateStats(enemiesAlive+"!");
+		//console.log(numShots+" shoots - "+enemiesAlive+" alive enemies");
+	},1000)
 	var shots = [];
 	var enemies = [];
 	var numShots=0;
@@ -246,7 +292,7 @@ var plane3d = function(settings){
 		var newEnemy = new coroSite.Enemy([]);
 		scene.add( newEnemy.getObject() );
 		enemies.push(newEnemy);
-		numShots++;
+		numEnemies++;
 		//console.log("Add Shoot "+numShots);
 	}
 	var checkKillEnemy = function(shot){
@@ -261,9 +307,16 @@ var plane3d = function(settings){
 					&& Math.abs(cube.position.z-shotCube.position.z)<20
 					){
 					enemy.kill();
+					numEnemies--;
 					enemies.splice(i,1);
 					i--;
-					console.log("Kill enemy!");
+					//console.log("Kill enemy!");
+					stats.addMessage("Enemy killed! "+numEnemies+" enemies left");
+
+					if(numEnemies==0){
+						stats.addMessage("You win!!!!!!!!!!","win");
+
+					}
 				}
 			}
 			

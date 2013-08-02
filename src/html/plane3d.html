@@ -1,7 +1,42 @@
 <html>
 	<head>
 		<title>Plane3D</title>
-		<style>canvas { width: 100%; height: 100% }</style>
+		<style>
+			canvas { width: 100%; height: 95% }
+			div.stats{
+				position:fixed;
+				top:0px;
+				height:50px;
+				width:50px;
+			}
+			div.stats.message{
+				position:fixed;
+				top:0px;
+				left:50%;
+				height:0em;
+				width:30em;
+				margin-left:-15em;
+				text-align:center;
+				overflow: hidden;
+				background-color: #ccFFdd;
+				transition: all .5s;
+				-webkit-transition: all .5s;
+			}
+			div.stats.message > .content{
+				margin:1em;
+				font-size: 1.5em;
+			}
+			div.stats.message.active{
+				min-height:5em;
+			}
+			div.stats.message.dead{
+				background-color: #ff3322;
+			}
+			div.stats.message.win{
+				background-color: #33FF22;
+				font-weight: bold;
+			}
+		</style>
 	</head>
 	<body>
 		<div id="container"></div>
