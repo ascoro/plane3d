@@ -15,19 +15,25 @@
 				left:50%;
 				height:0em;
 				width:30em;
+				opacity: 0.3;
 				margin-left:-15em;
 				text-align:center;
 				overflow: hidden;
 				background-color: #ccFFdd;
-				transition: all .5s;
-				-webkit-transition: all .5s;
+				border-bottom-right-radius: 1em;
+				border-bottom-left-radius: 1em;
+				transition: height .5s,opacity .5s;
+				-webkit-transition: height .5s,opacity .5s;
 			}
 			div.stats.message > .content{
 				margin:1em;
 				font-size: 1.5em;
 			}
 			div.stats.message.active{
-				min-height:5em;
+				height:5em;
+				opacity: 1;
+				transition: height .2s,opacity .2s;
+				-webkit-transition: height .2s,opacity .2s;
 			}
 			div.stats.message.dead{
 				background-color: #ff3322;

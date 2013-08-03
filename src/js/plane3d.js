@@ -11,30 +11,54 @@ coroSite.stats = function(){
 	var messages =[];
 	var messagesBusy=false;
 	var lastType;
+	var currentTimeout;
 	thiz.addMessage=function(message,type){
-		messages.push({message:message,type:type});
-		setTimeout(showMessage,0);
+		if(type){
+			clearTimeout(currentTimeout);
+			cleanQueue();
+			messages.push({message:message,type:type});
+			var delay=500;
+			console.log(currentTimeout);
+			if(!currentTimeout){
+				delay=0;
+			}
+			hideMessage(delay);
+		}else{
+			messages.push({message:message,type:type});
+			showMessage();
+		}
 	}
+
+
 	var showMessage = function(){
 		if(!messagesBusy){
-		console.log("A");
 			var nextMessage = messages.shift();
 			if(nextMessage){
 				messagesBusy=true;
 				$contentMessage.html(nextMessage.message);
 				$elMessage.removeClass(lastType);
 				$elMessage.addClass("active");
-				
+
 				$elMessage.addClass(nextMessage.type);
 				lastType=nextMessage.type;
-				setTimeout(hideMessage,3000);
+				var delay=3000;
+				if(nextMessage.type){
+					delay=10000;					
+				}
+				currentTimeout = setTimeout(function(){currentTimeout=undefined; hideMessage();},delay);
 			}
 		}
 	}
-	var hideMessage = function(){
+	var hideMessage = function(delay){
+		if(typeof delay ==="undefined"){
+			delay=500;			
+		}
 		messagesBusy=false;
 		$elMessage.removeClass("active");
-		setTimeout(showMessage,1000);
+		setTimeout(showMessage,delay);
+	}
+	var cleanQueue = function(){
+		messages=[];
 	}
 	thiz.updateStats=function(message){
 		$elStats.html(message);
@@ -224,9 +248,9 @@ var plane3d = function(settings){
 		container.appendChild( renderer.domElement );
 
 		addEnemy();
+		addEnemy();
+		addEnemy();
 		/*addEnemy();
-		addEnemy();
-		addEnemy();
 		addEnemy();
 		addEnemy();
 		addEnemy();
