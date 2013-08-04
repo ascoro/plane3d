@@ -70,7 +70,8 @@ coroSite.Shot = function(settings){
 	var position = settings.position||{x:0,y:0,z:0};
 	var direction = settings.direction||{x:0,y:1,z:0};
 	var boundingBox=7500;
-	var cube = new THREE.Mesh( new THREE.CubeGeometry( 5, 5, 5 ), new THREE.MeshNormalMaterial() );;
+	var material = new THREE.MeshBasicMaterial({ color: 'black' });
+	var cube = new THREE.Mesh( new THREE.CubeGeometry( 5, 5, 5 ), material );
 	cube.position.x=position.x;
 	cube.position.y=position.y;
 	cube.position.z=position.z;
@@ -95,7 +96,8 @@ coroSite.Enemy = function(settings){
 	var boundingBox=7500;
 	var position = settings.position||{x:Math.random()*boundingBox-boundingBox/2,y:600,z:Math.random()*boundingBox-boundingBox/2};
 	var direction = settings.direction||{x:Math.random(),y:0,z:Math.random()};
-	var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 20 ), new THREE.MeshNormalMaterial() );
+	var material = new THREE.MeshBasicMaterial({ color: 'grey' });
+	var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 20 ), material);
 	var dead=false;
 	cube.position.x=position.x;
 	cube.position.y=position.y;
@@ -115,6 +117,7 @@ coroSite.Enemy = function(settings){
 	}
 	this.kill = function(){
 		dead=true;
+		cube.material.color.setHex( 0xff0000 );
 	}
 	this.isDead = function(){
 		return dead;
@@ -250,7 +253,6 @@ var plane3d = function(settings){
 		addEnemy();
 		addEnemy();
 		addEnemy();
-		/*addEnemy();
 		addEnemy();
 		addEnemy();
 		addEnemy();
@@ -270,7 +272,8 @@ var plane3d = function(settings){
 		addEnemy();
 		addEnemy();
 		addEnemy();
-		addEnemy();*/
+		addEnemy();
+		addEnemy();
 
 		render();
 	}
