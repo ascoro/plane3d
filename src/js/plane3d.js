@@ -124,6 +124,49 @@ coroSite.Enemy = function(settings){
 	}
 };
 
+coroSite.MiniMap = function(settings){
+	settings=settings||{};
+	var thiz=this;
+	var enemies = settings.enemies||[];
+	var shots = settings.shots||[];
+	var yourself = settings.yourself||{};
+	var $map;
+	var context;
+	var mapId;
+	var sizeElements=5;
+	var init = function(){
+		mapId="map-"+Math.floor(Math.random()*1000);
+		$map=$("<canvas id='"+mapId+"' class='minimap'>");
+		$('body').append($map);
+		context = $map[0].getContext("2d");
+		context.canvas.width=100;
+		context.canvas.height=100;
+	}
+	var drawElement = function(x,y,color){
+		context.fillStyle = color;
+		context.fillRect(x, y, sizeElements, sizeElements);
+	}
+	var drawElementByCube = function(cube,color){
+		drawElement((cube.position.x+3500)/75,(cube.position.z+3500)/75,color);
+	}
+	thiz.render = function(){
+		context.fillStyle = "black";
+		context.fillRect(0, 0, 100, 100);
+		for(var i=0;enemies[i];i++){
+			var enemy = enemies[i].getObject();
+			drawElementByCube(enemy,"grey");
+		}
+		for(var i=0;shots[i];i++){
+			var shot = shots[i].getObject();
+			drawElementByCube(shot,"white");
+		}
+		if(yourself){
+			drawElementByCube(yourself,"green");
+		}
+	}
+	init();
+}
+
 coroSite.Terrain = function(settings){
 	var thiz = this;
 	var width=settings.width;
@@ -230,6 +273,7 @@ var plane3d = function(settings){
 	var youAreDeadToMeVaraible=false;
 	var stats;
 	var numEnemies=0;
+	var minimap;
 	var init = function(){
 		stats=new coroSite.stats();
 		clock = new THREE.Clock();
@@ -244,6 +288,8 @@ var plane3d = function(settings){
 		mesh = terrain.getMesh();
 		camera.position.y = terrain.getHeight(0,0)+400;
 		scene.add( mesh );
+
+		minimap = new coroSite.MiniMap({enemies:enemies,shots:shots,yourself:camera});
 
 		renderer = new THREE.WebGLRenderer();
 		renderer.setSize( window.innerWidth, window.innerHeight );
@@ -376,6 +422,7 @@ var plane3d = function(settings){
 			
 			moveShots();
 			moveEnemies();
+			minimap.render();
 			
 			if(!youAreDeadToMeVaraible){
 				renderer.render(scene, camera);
@@ -607,3 +654,5 @@ THREE.FirstPersonControls = function ( object, domElement , callbackMove,addShot
 };
 var planet;
 $(document).on('click',function(){if(!planet) planet=new plane3d();});
+var a = new coroSite.MiniMap();
+a.render();
