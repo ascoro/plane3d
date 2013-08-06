@@ -152,6 +152,29 @@ coroSite.MiniMap = function(settings){
 	thiz.render = function(){
 		context.fillStyle = "black";
 		context.fillRect(0, 0, 100, 100);
+		if(yourself){
+			drawElementByCube(yourself,"green");
+			
+			var vector = new THREE.Vector3( 0, 0, -1 );
+			vector.applyEuler( yourself.rotation, yourself.rotation.order );
+			var posx=(yourself.position.x+3500)/75+sizeElements/2;
+			var posz=(yourself.position.z+3500)/75+sizeElements/2;
+			var ratiox = posx / vector.x;
+			var ratioz = posz / vector.z;
+			var minRatio = ratioz;
+			if(Math.abs(ratiox)<Math.abs(ratioz)){
+				minRatio=ratiox;
+			}
+			console.log(minRatio);
+			context.fillStyle = '#555';
+			context.beginPath();
+			context.moveTo(posx, posz);
+			context.lineTo(posx+vector.x*1000,posz+vector.z*1000);
+			context.lineTo(posx+vector.x*1000+50,posz+vector.z*1000+50);
+			//c2.lineTo(0, 90);
+			context.closePath();
+			context.fill();
+		}
 		for(var i=0;enemies[i];i++){
 			var enemy = enemies[i].getObject();
 			drawElementByCube(enemy,"grey");
@@ -159,9 +182,6 @@ coroSite.MiniMap = function(settings){
 		for(var i=0;shots[i];i++){
 			var shot = shots[i].getObject();
 			drawElementByCube(shot,"white");
-		}
-		if(yourself){
-			drawElementByCube(yourself,"green");
 		}
 	}
 	init();
@@ -322,6 +342,7 @@ var plane3d = function(settings){
 		addEnemy();
 
 		render();
+			setInterval(function(){console.log(getDirectionCamera());},1000);
 	}
 	var colisionDetector = function(){
 		var xMap = (camera.position.x+3750)*256/7500;
@@ -352,10 +373,18 @@ var plane3d = function(settings){
 	var shots = [];
 	var enemies = [];
 	var numShots=0;
-	var addShot = function(){
+	var getDirectionEulerCamera=function(){
 		var vector = new THREE.Vector3( 0, 0, -1 );
 		vector.applyEuler( camera.rotation, camera.rotation.order );
-		var newShot = new coroSite.Shot({position:camera.position,direction:vector,speed:50});
+		return vector;
+	}
+	var getDirectionCamera=function(){
+		var vector = new THREE.Vector3( 0, 0, -1 );
+		vector.applyMatrix4( camera.matrixWorld  );
+		return vector;
+	}
+	var addShot = function(){
+		var newShot = new coroSite.Shot({position:camera.position,direction:getDirectionEulerCamera(),speed:50});
 		scene.add( newShot.getObject() );
 		shots.push(newShot);
 		numShots++;
