@@ -154,24 +154,24 @@ coroSite.MiniMap = function(settings){
 		context.fillRect(0, 0, 100, 100);
 		if(yourself){
 			drawElementByCube(yourself,"green");
-			
 			var vector = new THREE.Vector3( 0, 0, -1 );
 			vector.applyEuler( yourself.rotation, yourself.rotation.order );
+			var module = Math.sqrt(Math.pow(vector.x,2)+Math.pow(vector.z,2));
+			var angle = Math.acos(vector.x/module); //The vector needs to be module one to be able to calculate the angle
+			var windowAngle=0.3;
+			var direction = 1;
+			if(vector.z<0){
+				direction=-1;
+			}
+			var vectorUpper = [Math.cos(angle+windowAngle),direction*Math.sin(angle+windowAngle)];
+			var vectorLower = [Math.cos(angle-windowAngle),direction*Math.sin(angle-windowAngle)];
 			var posx=(yourself.position.x+3500)/75+sizeElements/2;
 			var posz=(yourself.position.z+3500)/75+sizeElements/2;
-			var ratiox = posx / vector.x;
-			var ratioz = posz / vector.z;
-			var minRatio = ratioz;
-			if(Math.abs(ratiox)<Math.abs(ratioz)){
-				minRatio=ratiox;
-			}
-			console.log(minRatio);
 			context.fillStyle = '#555';
 			context.beginPath();
 			context.moveTo(posx, posz);
-			context.lineTo(posx+vector.x*1000,posz+vector.z*1000);
-			context.lineTo(posx+vector.x*1000+50,posz+vector.z*1000+50);
-			//c2.lineTo(0, 90);
+			context.lineTo(posx+vectorUpper[0]*1000,posz+vectorUpper[1]*1000);
+			context.lineTo(posx+vectorLower[0]*1000,posz+vectorLower[1]*1000); 
 			context.closePath();
 			context.fill();
 		}
